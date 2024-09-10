@@ -1,16 +1,7 @@
-from math import sqrt
 import torch
 from torch import nn
 import torch.nn.functional as F
-
-
-# input_ids: Optional[torch.Tensor] = None,
-#     attention_mask: Optional[torch.Tensor] = None,
-#     head_mask: Optional[torch.Tensor] = None,
-#     inputs_embeds: Optional[torch.Tensor] = None,
-#     output_attentions: Optional[bool] = None,
-#     output_hidden_states: Optional[bool] = None,
-#     return_dict: Optional[bool] = None,
+from math import sqrt
 
 
 class Embeddings(nn.Module):
