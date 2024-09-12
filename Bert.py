@@ -18,7 +18,7 @@ class Embeddings(nn.Module):
 
     def forward(self, input_ids):
         seq_len = input_ids.size(1)
-        # TODO: add a torch device to position_ids
+        # TODO: add a torch device to position_embeds?
         position_ids = torch.arange(seq_len, dtype=torch.long)
         token_embeddings = self.token_embeds(input_ids)
         position_embeddings = self.position_embeds(position_ids)
@@ -46,6 +46,7 @@ class AttentionHead(nn.Module):
 
         scores = torch.bmm(q, k.transpose(1, 2)) / sqrt(q.shape[1])
         if attention_mask is not None:
+            attention_mask.unsqueeze_(1)
             scores.masked_fill_(attention_mask==0, -torch.inf)
         attn_weights = F.softmax(scores, dim=-1)
         return torch.bmm(attn_weights, v)
@@ -177,18 +178,3 @@ class BERT(nn.Module):
             x = self.dropout(x[:, 0, :])
             x = self.classifier(x)
         return x
-
-if __name__ == "__main__":
-    config = BertConfig(
-        embed_dim=768,
-        vocab_size=30_000,
-        max_seq_length=64,
-        num_encoder_blocks=12,
-        num_heads=8,
-        intermediate_dim=3072,
-        classification_head=True,
-        num_labels=2
-    )
-
-    model = BERT(config)
-    print(model(torch.randint(1, 30_000, (1,64))))
