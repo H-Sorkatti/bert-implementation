@@ -58,10 +58,12 @@ class MultiHeadAttention(nn.Module):
         self.heads = nn.Sequential(
             *[AttentionHead(config, self.head_dim) for _ in range(config.num_heads)]
         )
+        self.attn_output = nn.Linear(config.embed_dim, config.embed_dim, bias=True)
 
     def forward(self, input_ids):
         outs = [head(input_ids) for head in self.heads]
         final_attn = torch.cat(outs, dim=-1)
+        final_attn = self.attn_output(final_attn)
         return final_attn
 
 
