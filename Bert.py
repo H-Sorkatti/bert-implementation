@@ -39,13 +39,15 @@ class AttentionHead(nn.Module):
         self.k_net = nn.Linear(config.embed_dim, head_dim, bias=True)
         self.v_net = nn.Linear(config.embed_dim, head_dim, bias=True)
 
-    def forward(self, input_ids):
-        q = self.q_net(input_ids)
-        k = self.k_net(input_ids)
-        v = self.q_net(input_ids)
+    def forward(self, inputs, attention_mask=None):
+        q = self.q_net(inputs)
+        k = self.k_net(inputs)
+        v = self.q_net(inputs)
 
         scores = torch.bmm(q, k.transpose(1, 2)) / sqrt(q.shape[1])
-        attn_weights = F.softmax(scores, dim=1)
+        if attention_mask is not None:
+            scores.masked_fill_(attention_mask==0, -torch.inf)
+        attn_weights = F.softmax(scores, dim=-1)
         return torch.bmm(attn_weights, v)
 
 
@@ -60,8 +62,8 @@ class MultiHeadAttention(nn.Module):
         )
         self.attn_output = nn.Linear(config.embed_dim, config.embed_dim, bias=True)
 
-    def forward(self, input_ids):
-        outs = [head(input_ids) for head in self.heads]
+    def forward(self, inputs, attention_mask=None):
+        outs = [head(inputs, attention_mask) for head in self.heads]
         final_attn = torch.cat(outs, dim=-1)
         final_attn = self.attn_output(final_attn)
         return final_attn
@@ -79,8 +81,8 @@ class FeedForward(nn.Module):
         self.gelu = nn.GELU()
         self.dropout = nn.Dropout(0.1)
 
-    def forward(self, input_ids):
-        x = self.linear_1(input_ids)
+    def forward(self, inputs):
+        x = self.linear_1(inputs)
         x = self.gelu(x)
         x = self.linear_2(x)
         x = self.dropout(x)
@@ -95,9 +97,9 @@ class TransformerEncoderLayer(nn.Module):
         self.multihead_attention = MultiHeadAttention(config)
         self.feed_forward = FeedForward(config)
 
-    def forward(self, input_ids):
-        x = self.layernorm_1(input_ids)
-        attn = self.multihead_attention(x)
+    def forward(self, inputs, attention_mask=None):
+        x = self.layernorm_1(inputs)
+        attn = self.multihead_attention(x, attention_mask)
         x = x + attn
         x = self.layernorm_2(x)
         ff = self.feed_forward(x)
@@ -109,13 +111,14 @@ class TransformerEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.embeddings = Embeddings(config)
-        self.encoder_layers = nn.Sequential(
-            *[TransformerEncoderLayer(config) for _ in range(config.num_encoder_blocks)]
+        self.encoder_layers = nn.ModuleList(
+            [TransformerEncoderLayer(config) for _ in range(config.num_encoder_blocks)]
         )
 
-    def forward(self, input_ids):
-        embeddings = self.embeddings(input_ids)
-        x = self.encoder_layers(embeddings)
+    def forward(self, input_ids, attention_mask=None):
+        x = self.embeddings(input_ids)
+        for layer in self.encoder_layers:
+            x = layer(x, attention_mask)    
         return x
 
 
@@ -168,9 +171,24 @@ class BERT(nn.Module):
             self.dropout = nn.Dropout()
             self.classifier = nn.Linear(config.embed_dim, config.num_labels)
 
-    def forward(self, input_ids):
-        x = self.encoder(input_ids)
+    def forward(self, input_ids, attention_mask=None):
+        x = self.encoder(input_ids, attention_mask)
         if self.config.classification_head:
             x = self.dropout(x[:, 0, :])
             x = self.classifier(x)
         return x
+
+if __name__ == "__main__":
+    config = BertConfig(
+        embed_dim=768,
+        vocab_size=30_000,
+        max_seq_length=64,
+        num_encoder_blocks=12,
+        num_heads=8,
+        intermediate_dim=3072,
+        classification_head=True,
+        num_labels=2
+    )
+
+    model = BERT(config)
+    print(model(torch.randint(1, 30_000, (1,64))))
