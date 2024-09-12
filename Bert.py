@@ -35,9 +35,9 @@ class AttentionHead(nn.Module):
 
     def __init__(self, config, head_dim):
         super().__init__()
-        self.q_net = nn.Linear(config.embed_dim, head_dim, bias=False)
-        self.k_net = nn.Linear(config.embed_dim, head_dim, bias=False)
-        self.v_net = nn.Linear(config.embed_dim, head_dim, bias=False)
+        self.q_net = nn.Linear(config.embed_dim, head_dim, bias=True)
+        self.k_net = nn.Linear(config.embed_dim, head_dim, bias=True)
+        self.v_net = nn.Linear(config.embed_dim, head_dim, bias=True)
 
     def forward(self, input_ids):
         q = self.q_net(input_ids)
