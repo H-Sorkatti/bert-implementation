@@ -9,7 +9,7 @@ from bert import BERT, BertConfig
 config = BertConfig(
         embed_dim=768,
         vocab_size=30_000,
-        max_seq_length=50,
+        max_seq_length=64,
         num_encoder_blocks=12,
         num_heads=8,
         intermediate_dim=3072,
@@ -26,8 +26,8 @@ print(model)
 BERT(
   (encoder): TransformerEncoder(
     (embeddings): Embeddings(
-    (token_embeds): Embedding(30000, 768)
-      (position_embeds): Embedding(50, 768)
+      (token_embeds): Embedding(30000, 768)
+      (position_embeds): Embedding(64, 768)
       (layernorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
       (dropout): Dropout(p=0.5, inplace=False)
     )
@@ -36,43 +36,8 @@ BERT(
         (layernorm_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
         (layernorm_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
         (multihead_attention): MultiHeadAttention(
-          (heads): Sequential(
-            (0): AttentionHead(
-              (q_net): Linear(in_features=768, out_features=96, bias=True)
-              (k_net): Linear(in_features=768, out_features=96, bias=True)
-              (v_net): Linear(in_features=768, out_features=96, bias=True)
-            )
-            (1): AttentionHead(
-              (q_net): Linear(in_features=768, out_features=96, bias=True)
-              (k_net): Linear(in_features=768, out_features=96, bias=True)
-              (v_net): Linear(in_features=768, out_features=96, bias=True)
-            )
-            (2): AttentionHead(
-              (q_net): Linear(in_features=768, out_features=96, bias=True)
-              (k_net): Linear(in_features=768, out_features=96, bias=True)
-              (v_net): Linear(in_features=768, out_features=96, bias=True)
-            )
-            (3): AttentionHead(
-              (q_net): Linear(in_features=768, out_features=96, bias=True)
-              (k_net): Linear(in_features=768, out_features=96, bias=True)
-              (v_net): Linear(in_features=768, out_features=96, bias=True)
-            )
-            (4): AttentionHead(
-              (q_net): Linear(in_features=768, out_features=96, bias=True)
-              (k_net): Linear(in_features=768, out_features=96, bias=True)
-              (v_net): Linear(in_features=768, out_features=96, bias=True)
-            )
-            (5): AttentionHead(
-              (q_net): Linear(in_features=768, out_features=96, bias=True)
-              (k_net): Linear(in_features=768, out_features=96, bias=True)
-              (v_net): Linear(in_features=768, out_features=96, bias=True)
-            )
-            (6): AttentionHead(
-              (q_net): Linear(in_features=768, out_features=96, bias=True)
-              (k_net): Linear(in_features=768, out_features=96, bias=True)
-              (v_net): Linear(in_features=768, out_features=96, bias=True)
-            )
-            (7): AttentionHead(
+          (heads): ModuleList(
+            (0-7): 8 x AttentionHead(
               (q_net): Linear(in_features=768, out_features=96, bias=True)
               (k_net): Linear(in_features=768, out_features=96, bias=True)
               (v_net): Linear(in_features=768, out_features=96, bias=True)

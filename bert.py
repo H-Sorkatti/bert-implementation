@@ -60,8 +60,8 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.head_dim = config.embed_dim // config.num_heads
-        self.heads = nn.Sequential(
-            *[AttentionHead(config, self.head_dim) for _ in range(config.num_heads)]
+        self.heads = nn.ModuleList(
+            [AttentionHead(config, self.head_dim) for _ in range(config.num_heads)]
         )
         self.attn_output = nn.Linear(config.embed_dim, config.embed_dim, bias=True)
 
