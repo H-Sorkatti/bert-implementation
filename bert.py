@@ -19,7 +19,9 @@ class Embeddings(nn.Module):
     def forward(self, input_ids):
         seq_len = input_ids.size(1)
         # TODO: add a torch device to position_embeds?
-        position_ids = torch.arange(seq_len, dtype=torch.long)
+        device = input_ids.device  # Get the device of input_ids
+        
+        position_ids = torch.arange(seq_len, dtype=torch.long).to(device)
         token_embeddings = self.token_embeds(input_ids)
         position_embeddings = self.position_embeds(position_ids)
         combined_embeds = token_embeddings + position_embeddings
@@ -46,8 +48,8 @@ class AttentionHead(nn.Module):
 
         scores = torch.bmm(q, k.transpose(1, 2)) / sqrt(q.shape[1])
         if attention_mask is not None:
-            attention_mask.unsqueeze_(1)
-            scores.masked_fill_(attention_mask==0, -torch.inf)
+            attention_mask = attention_mask.unsqueeze(1)
+            scores = scores.masked_fill(attention_mask == 0, -1e9)
         attn_weights = F.softmax(scores, dim=-1)
         return torch.bmm(attn_weights, v)
 
